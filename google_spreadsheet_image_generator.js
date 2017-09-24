@@ -24,7 +24,7 @@ function getTemplate (row) {
 
 async.series ([
 	function setAuth (step) {
-		doc.useServiceAccountAuth (require ('../gdrive.key.json'), step);
+		doc.useServiceAccountAuth (require ('./gdrive.key.json'), step);
 	},
 	function getInfoAndWorksheets (step) {
 		doc.getInfo((error, info) => { 
