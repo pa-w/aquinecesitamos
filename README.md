@@ -36,7 +36,7 @@ Para correr el script se utiliza nodejs:
 node google_spreadsheet_image_generator.js
 ```
 
-El cual producirá una imagen con renglón. El nombre de archivo es, en este caso (se podrá personalizar más adelante): output.<renglon>.<fecha de actualizacion>.png
+El cual producirá una imagen con renglón. El nombre de archivo es, en este caso (se podrá personalizar más adelante): output.(numero de renglon).(fecha de actualizacion).png
   
   
 ## Roadmap
