@@ -2,9 +2,12 @@ var GoogleSpreadsheet = require('google-spreadsheet');
 var gd = require ('node-gd');
 var fs = require ('fs');
 var async = require('async');
+var sheed_id = '1mo9czjIQupWSkjyM--_RSusShy-WbHi8w28oBmxeufk';
+var doc = new GoogleSpreadsheet (sheet_id)
+var sheet, matrix = {}, savedRows = [];
+var min_row = 5, max_row = 50, outputFile = './ouput/latest.json';
 
-var doc = new GoogleSpreadsheet ('1mo9czjIQupWSkjyM--_RSusShy-WbHi8w28oBmxeufk');
-var sheet, matrix = {};
+/* config */
 var translate = {"1": "alerta", "2": "brigadistas", "3": "requeridos", "4": "admitidos", "5": "no_requeridos", "6": "direccion", "7": "zona", "8": "detalle", "9": "actualizacion"};
 var fonts = {regular: './assets/font-regular.ttf', bold: './assets/font-bold.ttf' } 
 var txtConf = {
@@ -15,11 +18,24 @@ var txtConf = {
 	requeridos: {size: 20, x: 45, y: 460, text: (a, r) => { if (r.brigadistas && r.brigadistas[0] == 's') { a = "Se necesitan brigadistas." + a; }  a = a.replace (/\./g, ',');  return a.replace (/,/g, "\n")}, multiline: true },
 	admitidos: { size: 20, x: 755, y: 460, text: (a, r) => { a = a.replace (/\./g, ','); return a.replace(/,/g, "\n") }, multiline: true },
 	no_requeridos: { size: 20, x: 1650, y: 500, text: (a, r) => { if (r.brigadistas && r.brigadistas[0] == 'n') { a = "No se necesitan brigadistas." + a; } a = a.replace (/\./g, ','); return a.replace(/,/g, "\n") }, multiline: true },
-	actualizacion: { size: 70, x: 1550, y: 140, text: (a, r) => {[date, time] = a.split (' '); [year, day, month] = date.split('/'); return day + "." + month + " | " + time; }, color: (a, r) => { return r.alerta } }
+	actualizacion: { size: 70, x: 1550, y: 140, text: (a, r) => {[date, time] = a.split (' '); [year, day, month] = date.split('/'); return day + "." + month + " | " + time; }, color: (a, r) => { return r.alerta.toLowerCase(); } }
 };
 
 function getTemplate (row) { 
+	//PNG de base, en este caso tenemos templates distintos para cada nivel de alerta
 	return './assets/alerta_' + row.alerta + '.png';
+}
+function getFilePath (row) { 
+	//Devuelve el nombre de archivo para guardar
+	[date, time] = row.actualizacion.split (' ');
+	[year,day,month] = date.split('/'), [hour,minute] = time.split(':');
+	if (date && time) {
+		return './output/'+ row.zona.toLowerCase ().replace(/ /g, '') + "-" + row.alerta.toLowerCase () + "-"  + year + month + day + hour + minute + ".png";
+	}
+	return './output/'+row.zona.toLowerCase().replace(/ /g, '') + "-" + row.zona.toLowerCase () + ".png";
+}
+function savedRow (row) {
+	savedRows.push (row);
 }
 
 async.series ([
@@ -35,8 +51,8 @@ async.series ([
 	},
 	function workingWithCells (step) {
 		sheet.getCells ({
-			'min-row': 6,
-			'max-row': 15
+			'min-row': min_row,
+			'max-row': max_row
 		}, (err, cells) => { 
 			if (err) return; 
 			for (var c in cells) {
@@ -58,27 +74,23 @@ async.series ([
 					if (err) return;
 
 					try {
-						[date, time] = row.actualizacion.split (' ');
-						[year,day,month] = date.split('/'), [hour,minute] = time.split(':');
-						if (date && time) {
 
-							/* Cambia los colores */
+						/* Cambia los colores */
 
-							var colors =  { white: img.colorAllocate (255, 255, 255), bajo: img.colorAllocate (209, 139,36), medio: img.colorAllocate (226, 111, 71), alto: img.colorAllocate (221, 62, 62) }
-							colors.urgente  = colors.alto;
+						var colors =  { white: img.colorAllocate (255, 255, 255), bajo: img.colorAllocate (209, 139,36), medio: img.colorAllocate (226, 111, 71), alto: img.colorAllocate (221, 62, 62) }
+						colors.urgente  = colors.alto;
 
-							for (var cnf in txtConf) { 
-								var conf = txtConf [cnf], 
-									text = (conf.text ? (typeof conf.text === "function" ? conf.text (row [cnf], row) : conf.text) : row [cnf]),
-									color = (conf.color ? (typeof conf.color === "function" ? conf.color (row [cnf], row) : conf.color ) : 'white' ),
-									font = (conf.font ? (typeof conf.font === "function" ? conf.font (row [cnf], row) : conf.font ) : 'regular' ),
-									size = (conf.size ? (typeof conf.size === "function" ? conf.size (row [cnf], row) : conf.size ) : 25 ),
-									x = (conf.x ? (typeof conf.x === "function" ? conf.x (row [cnf], row) : conf.x ) : 0 ),
-									y = (conf.y ? (typeof conf.y === "function" ? conf.y (row [cnf], row) : conf.y ) : 0 )
+						for (var cnf in txtConf) { 
+							var conf = txtConf [cnf], 
+								text = (conf.text ? (typeof conf.text === "function" ? conf.text (row [cnf], row) : conf.text) : row [cnf]),
+								color = (conf.color ? (typeof conf.color === "function" ? conf.color (row [cnf], row) : conf.color ) : 'white' ),
+								font = (conf.font ? (typeof conf.font === "function" ? conf.font (row [cnf], row) : conf.font ) : 'regular' ),
+								size = (conf.size ? (typeof conf.size === "function" ? conf.size (row [cnf], row) : conf.size ) : 25 ),
+								x = (conf.x ? (typeof conf.x === "function" ? conf.x (row [cnf], row) : conf.x ) : 0 ),
+								y = (conf.y ? (typeof conf.y === "function" ? conf.y (row [cnf], row) : conf.y ) : 0 )
 
-								var lines = text.split ("\n");
-								if (conf.multiline) { 
-								
+							var lines = text.split ("\n");
+							if (conf.multiline) { 
 								for (var l in lines) { 
 									var txt = lines [l].trim (), words = txt.split (' '), max_words = 6;
 									var groups = words.map ( (e, i) => { return i % max_words === 0 ? words.slice (i, i + max_words) : null }).filter ((e) => {return e;}) 
@@ -88,27 +100,35 @@ async.series ([
 										y += size + (size * .25);
 									}
 								}
-								} else { 
-									img.stringFT (colors [color], fonts [font], size, 0, x, y, text);
-								}
+							} else { 
+								img.stringFT (colors [color], fonts [font], size, 0, x, y, text);
 							}
-
-							img.savePng ('./output.' + r + "." + year + month + day + hour + minute + ".png", 1, function (err) {
-								if (err) {
-									console.log ("Could not save image; " + err);
-									throw err;
-								}
-								console.log ("saved!");
-							});
 						}
+
+						var filePath = getFilePath (row);
+						row.file_path = filePath;
+						savedRow (row);
+
+						img.savePng (filePath, 1, function (err) {
+							if (err) {
+								console.log ("Could not save image; " + err);
+								return;
+							}
+						});
 					} catch (e) {
 						console.log ("error: " + e)
+						console.log (e.stack);
 					}
-				})
+				});
 			} else {
-				console.log ("404: " + imgFile);
+				console.log ("404: template file " + imgFile);
 			}
 		}
+		step ();
+	},
+	function ProduceOutput () {
+		var json = JSON.stringify (savedRows);
+		fs.writeFile (outputFile, json, 'utf8', () => {});
 	}
 ])
 
