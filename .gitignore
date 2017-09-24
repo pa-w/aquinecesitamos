@@ -1,2 +1,4 @@
+node_modules/
 gdrive.key.json
 .sw*
+output.*

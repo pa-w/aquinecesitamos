@@ -7,7 +7,21 @@ var doc = new GoogleSpreadsheet (sheet_id)
 var sheet, matrix = {}, savedRows = [];
 var min_row = 5, max_row = 50, outputFile = './ouput/latest.json';
 
+
 /* config */
+var gSpreadsheetID = process.env.GSPREADSHEET_ID || '1mo9czjIQupWSkjyM--_RSusShy-WbHi8w28oBmxeufk';
+var gAPIKeyFile = process.env.GAPI_KEY_FILE || './gdrive.key.json';
+
+if (!fs.existsSync(gAPIKeyFile)) {
+	console.error(`GDrive API Key file not found (${gAPIKeyFile}). Aborting.`);
+	process.exit(1);
+}
+
+var gAPIKey = require (gAPIKeyFile);
+
+var doc = new GoogleSpreadsheet (gSpreadsheetID);
+var sheet, matrix = {};
+
 var translate = {"1": "alerta", "2": "brigadistas", "3": "requeridos", "4": "admitidos", "5": "no_requeridos", "6": "direccion", "7": "zona", "8": "detalle", "9": "actualizacion"};
 var fonts = {regular: './assets/font-regular.ttf', bold: './assets/font-bold.ttf' } 
 var txtConf = {
@@ -40,7 +54,8 @@ function savedRow (row) {
 
 async.series ([
 	function setAuth (step) {
-		doc.useServiceAccountAuth (require ('./gdrive.key.json'), step);
+		doc.useServiceAccountAuth (gAPIKey, step);
+		return step;
 	},
 	function getInfoAndWorksheets (step) {
 		doc.getInfo((error, info) => { 
