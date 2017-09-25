@@ -28,14 +28,14 @@ img.addColor ('medio', {r: 226, g: 111, b: 71});
 img.addColor ('alto', {r: 221, g: 62, b: 62}); 
 img.addColor ('urgente', {r: 221, g: 62, b: 62}); 
 
-img.text ('alerta', {font: 'bold', size: 100, x: 50, y: 200, color: 'white', text: (a, r) => { return a.toUpperCase (); } });
-img.text ('zona', {font: 'bold', size: (a, r) => { if (!a) return 48; return a.length > 20 ? 43 : 48 }, x: 500, y: 150, color: 'white', text: (a, r) => { if (!a) return ''; return a.toUpperCase (); } });
-img.text ('direccion', { size: 25, x: 500, y: 210});
-img.text ('detalle', { size: 25, x: 500, y: 245 });
-img.text ('requeridos', {size: 20, x: 45, y: 460, text: (a, r) => { if (r.brigadistas && r.brigadistas[0] == 's') { a = "Se necesitan brigadistas." + a; }  a = a.replace (/\./g, ',');  return a.replace (/,/g, "\n")}, multiline: true });
-img.text ('admitidos', { size: 20, x: 755, y: 460, text: (a, r) => { if (!a) return ''; a = a.replace (/\./g, ','); return a.replace(/,/g, "\n") }, multiline: true });
-img.text ('no_requeridos', { size: 20, x: 1650, y: 500, text: (a, r) => { if (r.brigadistas && r.brigadistas[0] == 'n') { a = "No se necesitan brigadistas." + a; } if (!a) return ''; a = a.replace (/\./g, ','); return a.replace(/,/g, "\n") }, multiline: true });
-img.text ('actualizacion', { size: 70, x: 1550, y: 140, text: (a, r) => {[date, time] = a.split (' '); [year, day, month] = date.split('/'); return day + "." + month + " | " + time; }, color: (a, r) => { return r.alerta.toLowerCase(); } });
+//img.text ('alerta', {font: 'bold', size: 100, x: 50, y: 200, color: 'white', text: (a, r) => { return a.toUpperCase (); } });
+img.text ('zona', {font: 'bold', size: (a, r) => { if (!a) return 55; return a.length > 20 ? 45 : 55 }, x: 20, y: 120, color: 'white', text: (a, r) => { if (!a) return ''; return a.toUpperCase (); } });
+img.text ('direccion', { size: (a, r) => { if (!a) { return 20; } return a.length > 30 ? 17 : 20 }, x: 65, y: 170});
+img.text ('detalle', { size: 20, x: 65, y: 215 });
+img.text ('requeridos', {size: 14, x: 20, y: 330, text: (a, r) => { if (r.brigadistas && r.brigadistas[0] == 's') { a = "Se necesitan brigadistas." + a; }  a = a.replace (/\./g, ',');  return a.replace (/,/g, "\n")}, multiline: true });
+img.text ('admitidos', { size: 14, x: 470, y: 330, text: (a, r) => { if (!a) return ''; a = a.replace (/\./g, ','); return a.replace(/,/g, "\n") }, multiline: true });
+img.text ('no_requeridos', { size: 20, x: 20, y: 750, text: (a, r) => { if (r.brigadistas && r.brigadistas[0] == 'n') { a = "No se necesitan brigadistas." + (a ? a : ''); } if (!a) return ''; a = a.replace (/\./g, ','); return a.replace(/,/g, "\n") }, multiline: true });
+img.text ('actualizacion', { size: 33, x: 550, y: 175, text: (a, r) => {[date, time] = a.split (' '); [year, day, month] = date.split('/'); return " " + day + "." + month + "          " + time; }, color: 'white' });
 
 var translate = {"1": "alerta", "2": "brigadistas", "3": "requeridos", "4": "admitidos", "5": "no_requeridos", "6": "direccion", "7": "zona", "8": "detalle", "9": "actualizacion"};
 var min_row = 5, max_row = 50;
