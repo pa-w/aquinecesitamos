@@ -73,7 +73,14 @@ async.series ([
 		img.render (step);
 	},
 	function SaveJSON (step) {
-		var json = JSON.stringify (img._rows);
+		var ll = [];
+		for (var r in img._rows) {
+			var x = img._rows [r];
+			x.file_name = x.file_path.split('\\').pop().split('/').pop()
+			x.file_path = '';
+			ll.push (x);
+		}
+		var json = JSON.stringify (ll);
 		fs.writeFile (outputFile, json, 'utf8', step);
 	}
 ]);
